@@ -95,7 +95,7 @@ if [[ $1 = "-b" || $1 = "--build" ]]; then
 		echo -e ""
 	if [ -d "$AK3_DIR" ]; then
 		cp -r $AK3_DIR Anykernel
-	elif ! git clone -q https://github.com/nvrfin/Anykernel -b a71-vic ; then
+	elif ! git clone -q https://github.com/termn0xh/Anykernel -b a71-vic ; then
 			echo -e "\nAnyKernel repo not found locally and couldn't clone from GitHub! Aborting..."
 	fi
 		cp $kernel Anykernel
