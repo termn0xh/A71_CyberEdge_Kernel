@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
@@ -28,7 +28,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Invoke gcc, looking for warnings, and causing a failure if there are
-# non-whitelisted warnings.
+# non-whitelisted warnings
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import errno
 import re
@@ -36,22 +38,19 @@ import os
 import sys
 import subprocess
 
-# Note that gcc uses unicode, which may depend on the locale.  TODO:
-# force LANG to be set to en_US.UTF-8 to get consistent warnings.
-
-allowed_warnings = set([
- ])
+allowed_warnings = set([])
 
 # Capture the name of the object file, can find it.
 ofile = None
 
 warning_re = re.compile(r'''(.*/|)([^/]+\.[a-z]+:\d+):(\d+:)? warning:''')
+
 def interpret_warning(line):
-    """Decode the message from gcc.  The messages we care about have a filename, and a warning"""
+    """Decode the message from gcc. The messages we care about have a filename, and a warning"""
     line = line.rstrip('\n')
     m = warning_re.match(line)
     if m and m.group(2) not in allowed_warnings:
-        print >> sys.stderr, "error, forbidden warning:", m.group(2)
+        print("error, forbidden warning:", m.group(2), file=sys.stderr)
 
         # If there is a warning, remove any object if it exists.
         if ofile:
@@ -62,31 +61,30 @@ def interpret_warning(line):
         sys.exit(1)
 
 def run_gcc():
+    global ofile
     args = sys.argv[1:]
+
     # Look for -o
     try:
         i = args.index('-o')
-        global ofile
         ofile = args[i+1]
     except (ValueError, IndexError):
         pass
 
-    compiler = sys.argv[0]
-
     try:
-        proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(args, stderr=subprocess.PIPE, text=True)
         for line in proc.stderr:
-            print >> sys.stderr, line,
+            print(line, file=sys.stderr, end='')
             interpret_warning(line)
 
         result = proc.wait()
     except OSError as e:
         result = e.errno
         if result == errno.ENOENT:
-            print >> sys.stderr, args[0] + ':',e.strerror
-            print >> sys.stderr, 'Is your PATH set correctly?'
+            print(args[0] + ': ' + e.strerror, file=sys.stderr)
+            print('Is your PATH set correctly?', file=sys.stderr)
         else:
-            print >> sys.stderr, ' '.join(args), str(e)
+            print(' '.join(args) + ' ' + str(e), file=sys.stderr)
 
     return result
 
